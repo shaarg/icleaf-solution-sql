@@ -1,0 +1,139 @@
+CREATE DATABASE IF NOT EXISTS academic_management;
+USE academic_management;
+
+
+CREATE TABLE StudentInfo (
+    STU_ID   INT AUTO_INCREMENT PRIMARY KEY,
+    STU_NAME VARCHAR(100) NOT NULL,
+    DOB      DATE,
+    PHONE_NO VARCHAR(15),
+    EMAIL_ID VARCHAR(100) UNIQUE,
+    ADDRESS  TEXT
+);
+
+
+CREATE TABLE CoursesInfo (
+    COURSE_ID              INT AUTO_INCREMENT PRIMARY KEY,
+    COURSE_NAME            VARCHAR(100) NOT NULL,
+    COURSE_INSTRUCTOR_NAME VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE EnrollmentInfo (
+    ENROLLMENT_ID INT AUTO_INCREMENT PRIMARY KEY,
+    STU_ID        INT,
+    COURSE_ID     INT,
+    ENROLL_STATUS ENUM('Enrolled','Not Enrolled') DEFAULT 'Enrolled',
+    FOREIGN KEY (STU_ID)  REFERENCES StudentInfo(STU_ID),
+    FOREIGN KEY (COURSE_ID) REFERENCES CoursesInfo(COURSE_ID)
+);
+
+
+INSERT INTO StudentInfo (STU_NAME, DOB, PHONE_NO, EMAIL_ID, ADDRESS) VALUES
+('Alice Kumar',  '2002-05-10', '9876543210', 'alice@example.com',  'Delhi'),
+('Brian Singh',  '2001-11-21', '9876500001', 'brian@example.com',  'Mumbai'),
+('Chitra Rao',   '2003-03-03', '9876500002', 'chitra@example.com', 'Chennai'),
+('Dinesh Verma', '2002-08-15', '9876500003', 'dinesh@example.com', 'Bangalore');
+
+
+INSERT INTO CoursesInfo (COURSE_NAME, COURSE_INSTRUCTOR_NAME) VALUES
+('Database Systems',   'Prof. Sharma'),
+('Data Structures',    'Prof. Mehta'),
+('Operating Systems',  'Prof. Iyer'),
+('Computer Networks',  'Prof. Reddy');
+
+INSERT INTO EnrollmentInfo (STU_ID, COURSE_ID, ENROLL_STATUS) VALUES
+(1, 1, 'Enrolled'),
+(1, 2, 'Enrolled'),
+(2, 1, 'Enrolled'),
+(2, 3, 'Enrolled'),
+(3, 2, 'Enrolled'),
+(3, 4, 'Not Enrolled'),
+(4, 1, 'Enrolled'),
+(4, 4, 'Enrolled');
+
+
+SELECT
+    s.STU_ID,
+    s.STU_NAME,
+    s.PHONE_NO,
+    s.EMAIL_ID,
+    e.COURSE_ID,
+    e.ENROLL_STATUS
+FROM StudentInfo s
+LEFT JOIN EnrollmentInfo e ON s.STU_ID = e.STU_ID
+ORDER BY s.STU_ID, e.COURSE_ID;
+
+SELECT
+    s.STU_NAME,
+    c.COURSE_ID,
+    c.COURSE_NAME,
+    c.COURSE_INSTRUCTOR_NAME,
+    e.ENROLL_STATUS
+FROM EnrollmentInfo e
+JOIN StudentInfo s ON e.STU_ID = s.STU_ID
+JOIN CoursesInfo c ON e.COURSE_ID = c.COURSE_ID
+WHERE s.STU_ID = 1
+  AND e.ENROLL_STATUS = 'Enrolled';
+  
+  SELECT COURSE_ID, COURSE_NAME, COURSE_INSTRUCTOR_NAME
+FROM CoursesInfo;
+
+
+SELECT COURSE_ID, COURSE_NAME, COURSE_INSTRUCTOR_NAME
+FROM CoursesInfo
+WHERE COURSE_ID = 2;
+
+SELECT COURSE_ID, COURSE_NAME, COURSE_INSTRUCTOR_NAME
+FROM CoursesInfo
+WHERE COURSE_ID IN (1, 2, 4);
+
+SELECT
+    c.COURSE_ID,
+    c.COURSE_NAME,
+    COUNT(*) AS ENROLLED_STUDENTS
+FROM CoursesInfo c
+JOIN EnrollmentInfo e ON c.COURSE_ID = e.COURSE_ID
+WHERE e.ENROLL_STATUS = 'Enrolled'
+GROUP BY c.COURSE_ID, c.COURSE_NAME
+ORDER BY ENROLLED_STUDENTS DESC;
+
+SELECT
+    c.COURSE_NAME,
+    s.STU_ID,
+    s.STU_NAME
+FROM EnrollmentInfo e
+JOIN StudentInfo s ON e.STU_ID = s.STU_ID
+JOIN CoursesInfo c ON e.COURSE_ID = c.COURSE_ID
+WHERE e.ENROLL_STATUS = 'Enrolled'
+  AND c.COURSE_ID = 1
+ORDER BY s.STU_NAME;
+
+SELECT
+    c.COURSE_INSTRUCTOR_NAME,
+    COUNT(DISTINCT e.STU_ID) AS ENROLLED_STUDENTS
+FROM CoursesInfo c
+JOIN EnrollmentInfo e ON c.COURSE_ID = e.COURSE_ID
+WHERE e.ENROLL_STATUS = 'Enrolled'
+GROUP BY c.COURSE_INSTRUCTOR_NAME
+ORDER BY ENROLLED_STUDENTS DESC;
+
+SELECT
+    s.STU_ID,
+    s.STU_NAME,
+    COUNT(DISTINCT e.COURSE_ID) AS COURSE_COUNT
+FROM StudentInfo s
+JOIN EnrollmentInfo e ON s.STU_ID = e.STU_ID
+WHERE e.ENROLL_STATUS = 'Enrolled'
+GROUP BY s.STU_ID, s.STU_NAME
+HAVING COUNT(DISTINCT e.COURSE_ID) > 1
+ORDER BY COURSE_COUNT DESC;
+
+SELECT
+    c.COURSE_ID,
+    c.COURSE_NAME,
+    COUNT(*) AS ENROLLED_STUDENTS
+FROM CoursesInfo c
+JOIN EnrollmentInfo e ON c.COURSE_ID = e.COURSE_ID
+WHERE e.ENROLL_STATUS = 'Enrolled'
+GROUP BY c.COURSE_ID, c.COURSE_NAME
+ORDER BY ENROLLED_STUDENTS DESC;
